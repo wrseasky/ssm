@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.mapper.StudentMapper">
+	<!-- <resultMap id="StudentResultMap" type="Student">
+		<id column="sid" property="sid" jdbcType="INTEGER" />
+		<result column="sname" property="sname" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="INTEGER" />
+		
+		多对一的关系  
+        property: 指的是属性的值, javaType：指的是属性的类型  
+        <association property="classes" javaType="Classes">  
+            <id column="id" property="id"/>  
+            <result column="name" property="name"/>  
+            <result column="version" property="version"/>  
+        </association>  
+		
+	</resultMap>
+	
+	
+	<select id="selectByPrimaryKey" resultMap="StudentResultMap" parameterType="java.lang.Integer">
+		select s.*,c.*
+		select s.sid,s.sname,s.version,c.*
+		from jpa.student s,jpa.classes c where s.classid = c.id
+		and s.sid = #{sid,jdbcType=INTEGER}
+	</select> -->
+	
+	
+	<resultMap id="studentMap" type="Student">
+		<id column="sid" property="sid" jdbcType="INTEGER" />
+		<result column="sname" property="sname" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="INTEGER" />
+		
+		<!-- 多对一的关系 -->  
+        <!-- property: 指的是属性的值, javaType：指的是属性的类型-->  
+        <association property="classes" javaType="Classes">  
+            <id column="id" property="id"/>  
+            <result column="name" property="name"/>
+            <result column="version" property="version"/>  
+        </association>
+        
+        <!-- 一对多的关系 -->  
+        <!-- property: 指的是集合属性的值, ofType：指的是集合中元素的类型 -->  
+        <collection property="courses" ofType="Course">  
+            <id column="zd" property="id"/>  <!--column指的是sql中对应的字段名称,不是数据库中对应的sql字段  -->
+            <result column="course_name" property="courseName"/>  
+        </collection>
+		
+	</resultMap>
+	
+	
+	<select id="selectByPrimaryKey" resultMap="studentMap" parameterType="java.lang.Integer">
+		select s.sid,s.sname,s.version,c.*,sss.zd,sss.course_name
+		from jpa.student s,jpa.classes c, (select cou.id zd,sc.student_id,sc.course_id,course_name from jpa.student_course sc,jpa.course cou where sc.id=cou.id) sss
+		where s.classid = c.id and sss.student_id = s.sid
+		and s.sid = #{sid,jdbcType=INTEGER}
+	</select>
+	
+	
+	
+	<delete id="deleteByMidKey" parameterType="java.lang.Integer">
+		delete from jpa.student_course
+		where student_id = #{id,jdbcType=INTEGER}
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from jpa.student
+		where sid = #{sid,jdbcType=INTEGER}
+	</delete>
+	
+	<insert id="insertStudent" parameterType="com.cn.hnust.pojo.Student">
+		<selectKey keyProperty="sid" resultType="Integer" order="AFTER"  >  <!-- ★★★★★★★★★新增返回id★★★★★★★★★  -->
+	        select LAST_INSERT_ID();  
+	    </selectKey>
+		insert into jpa.student (sid, sname, version, classid)
+		values(
+			#{sid,jdbcType=INTEGER},
+			#{sname,jdbcType=VARCHAR},
+			#{version,jdbcType=INTEGER},
+			#{classes.id,jdbcType=INTEGER}  <!-- ★★★★★★★★★★★★★多对一外键赋值方式★★★★★★★★★★★★★  -->
+		)
+	</insert>
+	<insert id="insertStudentMid" parameterType="java.lang.Integer">
+		<selectKey keyProperty="id" resultType="Integer" order="AFTER"  >  <!-- ★★★★★★★★★新增返回id★★★★★★★★★  -->
+	        select LAST_INSERT_ID();  
+	    </selectKey>
+		insert into jpa.student_course (student_id, course_id)
+		values(
+			#{studentId,jdbcType=VARCHAR},
+			#{courseId,jdbcType=INTEGER}
+		)
+	</insert>
+
+	<update id="updateByPrimaryKeySelective" parameterType="Student">
+		update jpa.student
+		<set>
+			<if test="sname != null">
+				sname = #{sname,jdbcType=VARCHAR},
+			</if>
+			version = version + 1
+		</set>
+		where sid = #{sid,jdbcType=INTEGER} and version = #{version,jdbcType=INTEGER}
+	</update>
+	
+</mapper>

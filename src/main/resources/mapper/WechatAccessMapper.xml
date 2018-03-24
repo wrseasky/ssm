@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.mapper.WechatAccessMapper">
+	<resultMap id="BaseResultMapWechat" type="WechatAccess" >
+	    <result column="s.nickname" property="name" jdbcType="VARCHAR" />
+	    <result column="b.event" property="event" jdbcType="VARCHAR" />
+	    <result column="b.eventkey" property="eventKey" jdbcType="VARCHAR" />
+	    <result column="b.content" property="content" jdbcType="VARCHAR" />
+	    <result column="b.createDate" property="date" jdbcType="DATE" />
+	  </resultMap>
+
+	<select id="getWechatAccessInfo" resultMap="BaseResultMapWechat" parameterType="WechatAccessParam">
+		select s.nickname,b.event,b.eventkey,b.content,b.createDate from weixin_callback_info b LEFT JOIN
+		(select u.userType userType,u.weixinUnionid,info.openid openid,info.nickname nickname from weixin_user_info info LEFT JOIN user u on u.weixinUnionid=info.unionid) s 
+		on b.FromUserName=s.openid  where 1=1
+			<if test="nickName != null and nickName != ''">
+				AND s.nickname like '%'+#{nickName}+'%'  
+			</if>
+			<if test="event != null and event != ''">  
+			    <choose>    
+			        <when test="event == 'msg'">    
+			            AND b.event is null 
+			        </when>
+			        <when test="event == 'all'">    
+			            AND b.event != 'TEMPLATESENDJOBFINISH'and b.event  != 'merchant_order' and b.event  != 'TEMPLATESENDJOBFINISH' 
+			        </when>   
+			        <otherwise>     
+			                AND b.event = #{event}  
+			        </otherwise>    
+			    </choose>   
+			</if> 
+			
+			<if test="eventKey != null and event != ''">
+				AND b.eventKey = #{eventKey}
+			</if>
+			<if test="userType != null">
+				AND s.userType = #{userType}
+			</if>
+			<if test="fromDate != null">
+				<!-- AND b.createDate >= #{fromDate} -->
+				 AND b.createDate &gt;= #{fromDate}
+			</if>
+			<if test="toDate != null">
+				<!-- AND b.createDate <= #{toDate} -->
+				AND b.createDate &lt;= #{toDate}
+			</if>
+     
+		   <if test="from != null and size != null">    
+		     ORDER BY b.createDate desc limit #{from},#{size}
+		   </if>
+	</select>
+
+</mapper>

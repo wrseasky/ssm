@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.mapper.ClassesMapper">
+	<resultMap id="ClassesResultMap" type="Classes">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="INTEGER" />
+		
+		<!-- 一对多的关系 -->  
+        <!-- property: 指的是集合属性的值, ofType：指的是集合中元素的类型 -->  
+        <collection property="students" ofType="Student">  
+            <id column="sid" property="sid"/>  
+            <result column="sname" property="sname"/>  
+            <result column="version" property="version"/>  
+        </collection>  
+		
+	</resultMap>
+	
+	
+	<select id="selectByPrimaryKey" resultMap="ClassesResultMap" parameterType="java.lang.Integer">
+		select c.*,s.*
+		from jpa.student s,jpa.classes c where s.classid = c.id
+		and c.id = #{id,jdbcType=INTEGER}
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from jpa.classes
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	
+	<insert id="insert" parameterType="com.cn.hnust.pojo.Classes" useGeneratedKeys="true">
+		<selectKey keyProperty="id" resultType="Integer" order="AFTER"  >  <!-- ★★★★★★★★★新增返回id★★★★★★★★★  -->
+	        select LAST_INSERT_ID();  
+	    </selectKey>
+		insert into jpa.classes (id, name, version)
+		values(
+		#{id,jdbcType=INTEGER}, 
+		#{name,jdbcType=VARCHAR},
+		#{version,jdbcType=INTEGER}
+		)
+	</insert>
+
+	<update id="updateByPrimaryKeySelective" parameterType="Classes">
+		update jpa.classes
+		<set>
+			<if test="name != null">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			version = version + 1
+		</set>
+		where id = #{id,jdbcType=INTEGER} and version=#{version,jdbcType=INTEGER}
+	</update>
+	
+</mapper>

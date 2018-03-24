@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.mapper.IsDeleteMapper">
+
+	<resultMap id="isDeleteResultMap" type="IsDelete">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="isDel" property="isDel" jdbcType="INTEGER" />
+		<result column="isFunny" property="isFunny" jdbcType="VARCHAR" />
+		<result column="test" property="test" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<select id="selectAll" resultMap="isDeleteResultMap">
+		select *
+		from test.is_delete
+	</select>
+	
+</mapper>
